@@ -738,7 +738,7 @@
 
     (fact "swagger-docs have trailing slashes removed"
       (->> app get-spec :paths keys)
-      => ["/" "/a" "/b/b1" "/b" "/b/b2"])))
+      => (just ["/" "/a" "/b/b1" "/b" "/b/b2"] :in-any-order))))
 
 (fact "formats supported by ring-middleware-format"
   (let [app (api
@@ -1438,7 +1438,7 @@
 
 (facts "custom formats contribute to Swagger :consumes & :produces"
   (let [custom-type "application/vnd.vendor.v1+json"
-        custom-format {:decoder [muuntaja.format.json/make-json-decoder {:key-fn true}]
+        custom-format {:decoder [muuntaja.format.json/make-json-decoder {:decode-key-fn true}]
                        :encoder [muuntaja.format.json/make-json-encoder]}
         app (api
               {:swagger {:spec "/swagger.json"}
@@ -1752,9 +1752,8 @@
             body => data))
 
         (fact "second api fails"
-          (let [[status body] (post* app "/echo2" (json-string data))]
-            status => 200
-            body => nil)))
+          (let [[status] (post* app "/echo2" (json-string data))]
+            status => 400)))
 
       (fact "wrap-format with defaults"
         (let [app (-> (routes
